@@ -7,9 +7,10 @@
         <div class="col-md-5 ml-auto mr-auto card text-center p-4">
             <h3>
                 Для продолжение оплатите 300000 тг
-            </h3>
+            </h3> <div class=""></div>
+
             <button class="btn btn-danger mt-4" onclick="window.location.href='{{route('Prove',$user['id'])}}'">
-                Оплатить
+                Прикрепить
             </button>
         </div>
     </div>

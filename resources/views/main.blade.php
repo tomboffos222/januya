@@ -60,9 +60,9 @@
             </div>
             <div class="col-md-12">
                 <div class="card p-4 d-flex">
-                    <button class="btn btn-danger copy_button" id="button_copy" onclick="copyToClipboard('#copy_aim')">Скопировать</button>
+                    <button class="btn btn-danger copy_button" id="button_copy" onclick="copyToClipboard1('#copy_aim1')">Скопировать</button>
                     <h3 class="mt-5">
-                        Ссылка для реферального пользователя :<a href="{{route('Registration',$user['id'])}}" id="copy_aim"> {{route('Registration',$user['id'])}}</a>
+                        Ссылка для реферального пользователя :<a href="{{route('Registration',$user['id'])}}" id="copy_aim1"> {{route('Registration',$user['id'])}}</a>
                     </h3>
                 </div>
             </div>
@@ -98,6 +98,14 @@
 
     <script>
         function copyToClipboard(element) {
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val($(element).text()).select();
+            document.execCommand("copy");
+            $temp.remove();
+            $('#button_copy').html('Скопировано')
+        }
+        function copyToClipboard1(element) {
             var $temp = $("<input>");
             $("body").append($temp);
             $temp.val($(element).text()).select();

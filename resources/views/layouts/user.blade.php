@@ -65,7 +65,7 @@
                         <a href="{{route('Profits')}}" class="nav-link">
                             <i class="material-icons">attach_money</i>
                             <p>
-                                Прибыль
+                                История бонусов
                             </p>
                         </a>
 

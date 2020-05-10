@@ -30,8 +30,9 @@
                       </div>
                   </form>
                   <div class="mt-2">
-                      <a href="" class="font-20 ">Забыли пароль?</a>
+                      <a href="{{route('RegisterPage')}}" class="font-20 ">Зарегистрироваться?</a>
                   </div>
+
               </div>
 
               <!-- Material form login -->

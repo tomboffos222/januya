@@ -5,13 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Admin;
 use App\Models\User;
 use App\Models\Tree;
+use App\Payment;
+use Excel;
 use App\Withdraw;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
     public function LoginPage(){
+//        $admin = new Admin;
+//        $admin['role'] = 'accountant';
+//        $admin['login'] = 'januya_bg';
+//        $admin['password'] = 'januya';
+//        $admin->save();
+
+
         return view('admin.login');
+    }
+    public function Payments(){
+        $data = Payment::get()->toArray();
+        return Excel::create('itsolutionstuff_example',function ($excel) use ($data){
+            $excel->sheet('mySheet',function ($sheet) use ($data){
+                $sheet->fromArray($data);
+            });
+        })->download('xlsx');
     }
     public function Login(Request $request){
         $rules = [
@@ -33,12 +50,24 @@ class AdminController extends Controller
            $admin = Admin::whereLogin($request['login'])->wherePassword($request['password'])->first();
            if (!$admin){
                return back()->withErrors('Неверный логин или пароль');
+           }else{
+               session()->put('admin',$admin);
+               session()->save();
+               if ($admin['role'] == 'superAdmin'){
+                   return redirect()->route('admin.Users');
+               }elseif($admin['role']== 'accountant'){
+                   return redirect()->route('admin.Withdraws');
+               }
            }
-           session()->put('admin',$admin);
-           session()->save();
 
-           return redirect()->route('admin.Users');
+
+
         }
+    }
+    public function Profits(){
+        $data['payments'] = Payment::where('status','ok')->paginate(12);
+        $data['active'] = 'profits';
+        return view('admin.payments',$data);
     }
     public function Out(Request $request){
         session()->forget('admin');

@@ -34,27 +34,44 @@
             </a>
 
         </div>
+        @php($admin = session()->get('admin'))
         <div class="sidebar-wrapper">
             <ul class="nav">
-
+                @if($admin['role'] == 'superAdmin')
                 <li class="nav-item  @if($active=='main') active  @endif  ">
                     <a class="nav-link" href="{{route('admin.Users')}}" >
                         <i class="material-icons">dashboard</i>
                         <p>Главная</p>
                     </a>
                 </li>
+
                 <li class="nav-item @if($active=='tree') active  @endif">
                     <a class="nav-link" href="{{route('admin.Trees')}}" >
                         <i class="material-icons">details</i>
                         <p>Матрица</p>
                     </a>
                 </li>
-                <li class="nav-item @if($active=='withdraw') active  @endif">
-                    <a class="nav-link" href="{{route('admin.Withdraws')}}" >
-                        <i class="material-icons">attach_money</i>
-                        <p>Выводы</p>
-                    </a>
-                </li>
+                @endif
+                    <li class="nav-item @if($active=='withdraw') active  @endif">
+                        <a class="nav-link" href="{{route('admin.Withdraws')}}" >
+                            <i class="material-icons">attach_money</i>
+                            <p>Выводы</p>
+                        </a>
+                    </li>
+                    <li class="nav-item @if($active=='profits') active @endif">
+                        <a href="{{route('admin.Profits')}}" class="nav-link">
+                            <i class="material-icons">money</i>
+                            <p>
+                                Прибыль
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('admin.Out')}}" class="nav-link">
+                            <i class="material-icons">exit_to_app</i>
+                            <p>Выход</p>
+                        </a>
+                    </li>
 
 
 

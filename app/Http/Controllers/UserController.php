@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Debt;
+use App\Models\Admin;
 use App\Models\Tree;
 use App\Models\User;
 use App\Tree_operation;
 use App\Withdraw;
+use App\Payment;
 use foo\bar;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -15,14 +17,26 @@ class UserController extends Controller
 {
 
     public function Home(){
-        return view('home');
+        $data['main'] = 1;
+        return view('home' , $data);
+
+    }
+    public function About(){
+        $data['about'] = 1;
+        return view('about',$data);
     }
 
     public function RegisterPage(){
         return view('register');
     }
-    public function RegConsultant($id){
-        $data['userId'] = $id;
+    public function RegConsultant($id=null){
+        if ($id == null){
+            $data['userId'] = null;
+        }else{
+            $data['userId'] = $id;
+        }
+
+        $data['consultant'] = 1;
         return view('register',$data);
 
     }
@@ -39,7 +53,7 @@ class UserController extends Controller
             'phone' => 'required',
             'email' => 'required|email',
             'password' => 'required|min:8',
-            'bs_id'=> 'required'
+
 
         ];
 
@@ -75,27 +89,28 @@ class UserController extends Controller
 //            $lastUser = Tree::where('parents', 'LIKE','%,'.$user['bs_id'] . ',%')->orderBy('id', 'desc')->first();
 //            $parents =  explode(',',substr($lastUser['parents'],1));
             $parentConsultant = User::find($request['bs_id']);
-            if ($parentConsultant['status'] == 'registered') {
-                $parentConsultant['bill'] += 14000;
+            if ($parentConsultant) {
+                $parentConsultant['bill'] += 30000;
                 $parentConsultant->save();
                 $operations = new Tree_operation;
                 $operations['user_id'] = $request['bs_id'];
-                $operations['description'] = 'Прибыль в 14000тг от клиента '.$user['login'];
-                $operations['amount'] = 14000;
+                $operations['description'] = 'Прибыль в 30000тг от клиента '.$user['login'];
+                $operations['amount'] = 30000;
                 $operations->save();
+
+                $user->save();
+
+
 
 
             }else{
-                return back()->withErrors('Ошибка попробуй позже');
+                $user->save();
+                return redirect()->route('Purchase',$user['id']);
             }
 
 
 
-            $user->save();
 
-
-
-            return redirect()->route('Purchase',$user['id']);
         }
     }
     public function Register(Request $request)
@@ -160,6 +175,14 @@ class UserController extends Controller
         $user = User::find($id);
         $user['status'] = 'client';
         $user->save();
+        $payment = new Payment;
+        $payment['user_id'] = $user['id'];
+        $payment['amount'] = 300000;
+        $payment['status'] = 'ok';
+        $payment['description'] = 'Аккаунт клиента';
+        $payment['profit'] = $payment['amount'] - 60000;
+        $payment->save();
+
         for($i=0;$i<=5;$i++){
             $debt = new Debt();
             $debt['user_id'] = $user['id'];
@@ -193,7 +216,7 @@ class UserController extends Controller
             'zhsn' => 'required|max:14',
             'phone' => 'required',
             'email' => 'required|email',
-            'bs_id' => 'required',
+//            'bs_id' =>'required',
             'password' => 'required|min:8'
 
         ];
@@ -206,7 +229,7 @@ class UserController extends Controller
             "zhsn.required" => "Введите ИИН",
             "password.min" => "Пароль должен быть 8 символов",
             "password.required" => "Введите пароль",
-            "bs_id"=> "required"
+            "bs_id.required"=> "Ошибка"
         ];
         $validator = $this->validator($request->all(),$rules,$messages);
         if ($validator->fails()){
@@ -221,6 +244,7 @@ class UserController extends Controller
             $user['phone'] = $request['phone'];
             $user['email'] = $request['email'];
             $user['password'] = $request['password'];
+            $user['achievement'] = 'Консультант';
             if ($request['bs_id']){
                 $user['bs_id'] = $request['bs_id'];
             }
@@ -229,11 +253,18 @@ class UserController extends Controller
 
 
             $user->save();
-            if ($user['bs_id']){
-                $this->AddUserToMatrix($user['id'], $user['bs_id']);
-            }else{
-                $this->AddUserToMatrix($user['id'], $user['bs_id']);
-            }
+            $payment = new Payment;
+            $payment['status'] = 'ok';
+            $payment['user_id'] = $user['id'];
+            $payment['amount'] = 40000;
+            $payment['description'] = 'Покупка аккаунта консультанта';
+            $payment->save();
+
+            $this->AddUserToMatrix($user['id'], $user['bs_id'], $payment['id']);
+
+
+
+
 
             return redirect()->route('LoginPage')->with('message','Ваш запрос отправлен!');
 
@@ -261,16 +292,19 @@ class UserController extends Controller
             return back()->withErrors($validator->errors());
 
         } else {
-            $user = User::whereLogin($request['login'])->wherePassword($request['password'])
-                ->where('status','registered')
-                ->orWhere('status','client')
+            $user = User::where('login',$request['login'])
+                ->where('password',$request['password'])
+                ->whereIn('status',['client','registered'])
+
+
                 ->first();
 
             if (!$user){
-                return redirect()->route('LoginPage')->withErrors('Логин или пароль не верно');
+                return redirect()->route('LoginPage')->withErrors('Логин или пароль не верны');
             }
             session()->put('user',$user);
             session()->save();
+
 
             return redirect()->route('Main');
         }
@@ -365,7 +399,15 @@ class UserController extends Controller
         $active = 'tree';
         return view('tree',['user'=>$user,'tree'=>$tree, 'active'=>$active]);
     }
-    function AddUserToMatrix($user_id, $parent_id){
+    public function Programs(){
+        $data['programs'] = 1;
+        return view('programs',$data);
+    }
+    public function Documents(){
+        $data['documents'] = 1;
+        return view('documents',$data);
+    }
+    function AddUserToMatrix($user_id, $parent_id, $payment_id){
         if (Tree::whereUserId($user_id)->exists()){
             return back()->withErrors('Уже зарегистрированы');
         }else{
@@ -388,7 +430,7 @@ class UserController extends Controller
                     $tree['row'] = $parent['row'] +1;
                     $tree['tree'] = 1;
                     $tree->save();
-                    $this->Distributor($tree['parents']);
+                    $this->Distributor($tree['parents'],$payment_id, $user_id);
 
                 }else{
                     $childUsers = Tree::where('parent_id',$parent_id)->where('tree',$lastUser['tree'])->count();
@@ -414,7 +456,7 @@ class UserController extends Controller
                         $childCount = Tree::where('parents','LIKE','%,'.$parent_id.',%')->where('tree',$tree['tree'])->count();
                         $this->AchieveGiver($childCount, $parent_id);
                         if (max($counts)<=3125){
-                            $this->Distributor($tree['parents']);
+                            $this->Distributor($tree['parents'], $payment_id , $user_id);
 
                         }
 
@@ -438,7 +480,7 @@ class UserController extends Controller
                         $childCount = Tree::where('parents','LIKE','%,'.$parent_id.',%')->where('tree',$tree['tree'])->count();
                         $this->AchieveGiver($childCount, $parent_id);
                         if (max($counts)<=3125){
-                            $this->Distributor($tree['parents']);
+                            $this->Distributor($tree['parents'],$payment_id, $user_id);
 
                         }
 
@@ -485,35 +527,42 @@ class UserController extends Controller
             $user->save();
         }
     }
-    function Distributor($parents){
+    function Distributor($parents,$payment_id, $user_id){
         $parents = explode(',',substr($parents,1));
         array_pop($parents);
 
+        $payment =  Payment::find($payment_id);
         for ($i= 1; $i<=5;$i++){
             if (isset($parents[count($parents)-$i])){
                 if($i == 1){
+                    $payment['profit'] = $payment['amount'] - 14000;
 
-                    $this->Gift($parents[count($parents)-$i],14000);
+                    $this->Gift($parents[count($parents)-$i],14000, $user_id);
 
                 }elseif($i ==2 || $i ==4){
-                    $this->Gift($parents[count($parents)-$i],4000);
+                    $payment['profit'] = $payment['amount'] - 4000;
+                    $this->Gift($parents[count($parents)-$i],4000, $user_id);
                 }elseif($i ==3){
-                    $this->Gift($parents[count($parents)-$i],2000);
+                    $payment['profit'] = $payment['amount'] - 2000;
+                    $this->Gift($parents[count($parents)-$i],2000 , $user_id);
 
                 }else{
-                    $this->Gift($parents[count($parents)-$i],6000);
+                    $payment['profit'] = $payment['amount'] - 6000;
+                    $this->Gift($parents[count($parents)-$i],6000 , $user_id);
 
                 }
             }
         }
-
+        $payment->save();
 
     }
-    function Gift($user_id,$amount ){
+    function Gift($user_id,$amount, $child){
         $treeOperation = new Tree_operation();
+        $child = User::find($child);
+
         $treeOperation['user_id'] = $user_id;
         $treeOperation['amount'] = $amount;
-        $treeOperation['description'] = 'За нового консультанта вам начисляется '.$amount.' тг';
+        $treeOperation['description'] = 'За '.$child['login'].' консультанта вам начисляется '.$amount.' тг';
         $treeOperation->save();
         $parentUser = User::find($user_id);
         $parentUser['bill'] += $amount;
@@ -560,5 +609,13 @@ class UserController extends Controller
                 return back()->withErrors('Недостаточно баланса');
             }
         }
+    }
+    public function Questions(){
+        $data['questions'] = 1;
+        return view('questions',$data);
+    }
+    public function Contacts(){
+        $data['contacts'] = 1;
+        return view('contacts',$data);
     }
 }

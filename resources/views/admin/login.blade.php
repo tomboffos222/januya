@@ -29,7 +29,7 @@
 <body class="login-page">
 <div class="login-box">
     <div class="logo">
-        <a href="javascript:void(0);">Happy<b> New Style</b></a>
+        <a href="javascript:void(0);"><b>JANUYA</b></a>
     </div>
     <div class="card">
         <div class="body">

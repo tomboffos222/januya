@@ -11,14 +11,15 @@
 
                    </button>
                    <h2 class="">Регистрация</h2>
+
                </div>
-               <form class=" " action="@if(!isset($clientRef)){{route('RegisterClient')}} @else{{route("Register")}}@endif" method="post">
+               <form class=" " action="@if(!isset($clientRef) && !isset($consultant)){{route('RegisterClient')}}@elseif(isset($consultant)) {{route('RegisterConsultant')}} @else{{route("Register")}}@endif" method="post">
 
                    {{csrf_field()}}
                    @if(isset($userId))
                    <div class="form-group ">
 
-                       <input class="form-control" placeholder="Например 123456" type="hidden"  id="bs_id" name="bs_id">
+                       <input class="form-control" placeholder="Например 123456" type="hidden"  id="bs_id" name="bs_id" value="{{$userId}}">
                    </div>
                    @elseif(isset($bs_id))
                        <input type="hidden" name="bs_id" value="{{$bs_id}}">
@@ -64,6 +65,7 @@
             justify-content: center;
             align-items: center;
             padding: 0px;
+            bottom:-10px;
             height:30px;
 
 
@@ -71,6 +73,7 @@
         .btn:not(.btn-link):not(.btn-circle) i{
             top:0px;
         }
+
     </style>
 @endsection
 

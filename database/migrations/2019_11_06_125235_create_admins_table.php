@@ -15,7 +15,7 @@ class CreateAdminsTable extends Migration
     {
         Schema::create('admins', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->enum('role',['superAdmin','admin']);
+            $table->enum('role',['superAdmin','admin','accountant']);
             $table->string('login',100);
             $table->string('password',100);
             $table->timestamps();

@@ -15,9 +15,9 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('bs_id');
+            $table->integer('bs_id')->nullable();
 
-            $table->enum('status',['sent','registered','reject'])->default('sent');
+            $table->enum('status',['sent','registered','reject','client'])->default('sent');
             $table->enum('prize',['home','car','tech']);
 
             $table->string('name');
@@ -25,7 +25,9 @@ class CreateUsersTable extends Migration
             $table->string('phone',30);
             $table->string('email');
             $table->string('password')->nullable();
-
+            $table->bigInteger('bill');
+            $table->bigInteger('zhsn');
+            $table->string('achievement');
             $table->integer('bot_owner_id')->nullable()->default(null);
 
             $table->timestamps();

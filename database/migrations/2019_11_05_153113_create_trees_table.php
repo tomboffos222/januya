@@ -16,10 +16,11 @@ class CreateTreesTable extends Migration
         Schema::create('trees', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('user_id')->unique();
-            $table->integer('parent_id');
+            $table->integer('parent_id')->nullable();
             $table->string('parents',100);
             $table->integer('level')->default(0);
             $table->integer('row')->default(0);
+            $table->bigInteger('tree');
             $table->timestamps();
             $table->softDeletes();
         });

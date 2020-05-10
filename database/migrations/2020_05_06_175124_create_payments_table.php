@@ -18,7 +18,9 @@ class CreatePaymentsTable extends Migration
             $table->bigInteger('user_id')->unsigned();
             $table->bigInteger('amount');
             $table->enum('status',['wait','fail','ok']);
+            $table->bigInteger('profit')->nullable();
 
+            $table->string('description');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->timestamps();
